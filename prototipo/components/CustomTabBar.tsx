@@ -65,7 +65,6 @@ const styles = StyleSheet.create({
   },
   tabButton: {
     alignItems: "center",
-    
     gap: 2,
   },
   activeTab: {},

@@ -1,10 +1,16 @@
-import { View, Text } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { View, StyleSheet, Text } from "react-native";
 
 export default function HomeScreen() {
   return (
-    <SafeAreaView>
-      <Text>Tela Inicial</Text>
-    </SafeAreaView>
+    <View style={styles.container}>
+      <Text>tela inicial</Text>
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#F9FAFB",
+  },
+});
