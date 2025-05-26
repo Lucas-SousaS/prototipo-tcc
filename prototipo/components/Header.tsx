@@ -5,10 +5,11 @@ function Header() {
   return (
     <View style={styles.container}>
       <View style={styles.box}>
-        <FontAwesomeIcon size={28} icon="bars" />
+        <FontAwesomeIcon size={28} icon="bars" color="#595959" />
         <Image
           source={{ uri: "https://i.pravatar.cc/150" }}
           style={styles.avatar}
+          
         />
       </View>
     </View>
