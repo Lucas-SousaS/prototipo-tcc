@@ -1,6 +1,13 @@
 import CustomLogo from "@/components/CustomLogo";
 import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
-import { View, Text, StyleSheet, TextInput, Pressable, ScrollView } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TextInput,
+  Pressable,
+  ScrollView,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import OpenAI from "openai";
 import { useEffect, useState } from "react";
@@ -18,41 +25,77 @@ export default function Chat() {
     dangerouslyAllowBrowser: true,
   });
 
-  const [reqValue, setReqValue] = useState<string>('');
+  const [reqValue, setReqValue] = useState<string>("");
   const [systemMessages, setSystemMessages] = useState<string[]>([]);
+  const [userMessages, setUserMessages] = useState<string[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [hasMessage, setHasMessage] = useState(false);
+
+  useEffect(() => {
+    setHasMessage(userMessages.length > 0 || systemMessages.length > 0);
+  }, [userMessages, systemMessages]);
 
   async function RespExe(content: string) {
-    const response = await client.chat.completions.create({
-      messages: [{ role: "user", content }],
-      temperature: 1.0,
-      top_p: 1.0,
-      max_tokens: 1000,
-      model: modelName,
-    });
+    setIsLoading(true);
 
-    const messageContent = response.choices[0].message.content;
+    try {
+      const response = await client.chat.completions.create({
+        messages: [{ role: "user", content }],
+        temperature: 1.0,
+        top_p: 1.0,
+        max_tokens: 1000,
+        model: modelName,
+      });
 
-    if (messageContent) {
-      setSystemMessages(prev => [...prev, messageContent]);
+      const messageContent = response.choices[0].message.content;
+
+      if (content) {
+        setUserMessages((prev) => [...prev, content]);
+      }
+
+      if (messageContent) {
+        setSystemMessages((prev) => [...prev, messageContent]);
+        setReqValue("");
+      }
+    } catch (error) {
+      console.error("Erro ao obter resposta:", error);
+    } finally {
+      setIsLoading(false);
     }
   }
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <View style={styles.box}>
-        <View style={styles.boxLogo}>
-          <CustomLogo width={200} height={200} />
-          <Text style={styles.logoText}>
-            Como Posso Te Ajudar?
-          </Text>
-        </View>
+        {!hasMessage && (
+          <View style={styles.boxLogo}>
+            <CustomLogo width={200} height={200} />
+            <Text style={styles.logoText}>Como Posso Te Ajudar?</Text>
+          </View>
+        )}
 
-        <ScrollView style={styles.chatArea} contentContainerStyle={{ gap: 10 }}>
-          {systemMessages.map((msg, index) => (
-            <View key={index} style={styles.messageBubble}>
-              <Text>{msg}</Text>
+        <ScrollView style={styles.chatArea}>
+          {userMessages.map((userMsg, index) => (
+            <View key={`user-${index}`}>
+              <View style={styles.messageUserBubble}>
+                <Text style={{color: "#737373"}}>{userMsg}</Text>
+              </View>
+
+              {systemMessages[index] && (
+                <View style={styles.messageBubble}>
+                  <Text style={{color: "#737373"}}>{systemMessages[index]}</Text>
+                </View>
+              )}
             </View>
           ))}
+
+          {isLoading && (
+            <View style={styles.messageBubble}>
+              <Text style={{ fontStyle: "italic", color: "gray" }}>
+                Carregando resposta...
+              </Text>
+            </View>
+          )}
         </ScrollView>
 
         <View style={styles.boxInput}>
@@ -92,13 +135,30 @@ const styles = StyleSheet.create({
   },
   chatArea: {
     flex: 1,
-    marginVertical: 20,
+    display: "flex",
+    position: "relative",
+    marginTop: 20
   },
   messageBubble: {
-    backgroundColor: "#E0E0E0",
+    backgroundColor: "#EFEFEF",
     borderRadius: 10,
     padding: 10,
+    alignSelf: "flex-start",
+    flexShrink: 0,
+    maxWidth: "70%",
+    marginBottom: 20,
+    color: "#737373"
   },
+  messageUserBubble: {
+    backgroundColor: "#EFEFEF",
+    borderRadius: 10,
+    padding: 10,
+    alignSelf: "flex-end",
+    flexShrink: 0,
+    marginBottom: 20,
+    color: "#737373"
+  },
+
   inputWrapper: {
     display: "flex",
     flexDirection: "row",
@@ -107,10 +167,13 @@ const styles = StyleSheet.create({
     gap: 5,
   },
   inputChat: {
-    padding: 10,
+    padding: 5,
     flex: 1,
-    width: "100%"
-  },
+    width: "100%",
+    color: "#737373",
+     fontWeight: "semibold",
+    fontSize: 15
+    },
   boxInput: {
     borderRadius: 10,
     backgroundColor: "#EFEFEF",
@@ -121,6 +184,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     alignItems: "center",
     width: "100%",
+    marginBottom: 10
   },
   camIcon: {
     paddingLeft: 10,
@@ -134,6 +198,6 @@ const styles = StyleSheet.create({
   logoText: {
     fontWeight: "bold",
     fontSize: 20,
-    color: "#737373"
-  }
+    color: "#737373",
+  },
 });
