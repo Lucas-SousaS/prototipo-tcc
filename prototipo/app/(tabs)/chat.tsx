@@ -7,10 +7,17 @@ import {
   TextInput,
   Pressable,
   ScrollView,
+
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import OpenAI from "openai";
 import { useEffect, useState } from "react";
+import {
+  KeyboardAvoidingView,
+  Platform,
+  Keyboard,
+  TouchableWithoutFeedback,
+} from "react-native";
 
 const token = process.env.EXPO_PUBLIC_CHATGPT_API_KEY;
 const endpoint = "https://models.github.ai/inference";
@@ -65,58 +72,67 @@ export default function Chat() {
   }
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
-      <View style={styles.box}>
-        {!hasMessage && (
-          <View style={styles.boxLogo}>
-            <CustomLogo width={200} height={200} />
-            <Text style={styles.logoText}>Como Posso Te Ajudar?</Text>
-          </View>
-        )}
-
-        <ScrollView style={styles.chatArea}>
-          {userMessages.map((userMsg, index) => (
-            <View key={`user-${index}`}>
-              <View style={styles.messageUserBubble}>
-                <Text style={{color: "#737373"}}>{userMsg}</Text>
-              </View>
-
-              {systemMessages[index] && (
-                <View style={styles.messageBubble}>
-                  <Text style={{color: "#737373"}}>{systemMessages[index]}</Text>
-                </View>
-              )}
-            </View>
-          ))}
-
-          {isLoading && (
-            <View style={styles.messageBubble}>
-              <Text style={{ fontStyle: "italic", color: "gray" }}>
-                Carregando resposta...
-              </Text>
+  <KeyboardAvoidingView
+    style={{ flex: 1 }}
+    behavior={Platform.OS === "android" ? "padding" : "height"}
+    keyboardVerticalOffset={Platform.OS === "android" ? 90 : 0} 
+  >
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+      <View style={[styles.container, { paddingTop: insets.top }]}>
+        <View style={styles.box}>
+          {!hasMessage && (
+            <View style={styles.boxLogo}>
+              <CustomLogo width={200} height={200} />
+              <Text style={styles.logoText}>Como Posso Te Ajudar?</Text>
             </View>
           )}
-        </ScrollView>
 
-        <View style={styles.boxInput}>
-          <View style={styles.inputWrapper}>
-            <FontAwesomeIcon size={28} icon="camera" color="#737373" />
-            <TextInput
-              accessibilityLabel="Faça sua pergunta"
-              placeholder="Faça sua pergunta"
-              style={styles.inputChat}
-              value={reqValue}
-              onChangeText={setReqValue}
-            />
+          <ScrollView style={styles.chatArea}>
+            {userMessages.map((userMsg, index) => (
+              <View key={`user-${index}`}>
+                <View style={styles.messageUserBubble}>
+                  <Text style={{ color: "#737373" }}>{userMsg}</Text>
+                </View>
+
+                {systemMessages[index] && (
+                  <View style={styles.messageBubble}>
+                    <Text style={{ color: "#737373" }}>{systemMessages[index]}</Text>
+                  </View>
+                )}
+              </View>
+            ))}
+
+            {isLoading && (
+              <View style={styles.messageBubble}>
+                <Text style={{ fontStyle: "italic", color: "gray" }}>
+                  Carregando resposta...
+                </Text>
+              </View>
+            )}
+          </ScrollView>
+
+          <View style={styles.boxInput}>
+            <View style={styles.inputWrapper}>
+              <FontAwesomeIcon size={28} icon="camera" color="#737373" />
+              <TextInput
+                accessibilityLabel="Faça sua pergunta"
+                placeholder="Faça sua pergunta"
+                style={styles.inputChat}
+                value={reqValue}
+                onChangeText={setReqValue}
+              />
+            </View>
+
+            <Pressable style={styles.camIcon} onPress={() => RespExe(reqValue)}>
+              <FontAwesomeIcon size={28} icon="paper-plane" color="#00C6FF" />
+            </Pressable>
           </View>
-
-          <Pressable style={styles.camIcon} onPress={() => RespExe(reqValue)}>
-            <FontAwesomeIcon size={28} icon="paper-plane" color="#00C6FF" />
-          </Pressable>
         </View>
       </View>
-    </View>
-  );
+    </TouchableWithoutFeedback>
+  </KeyboardAvoidingView>
+);
+
 }
 
 const styles = StyleSheet.create({
@@ -184,7 +200,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     alignItems: "center",
     width: "100%",
-    marginBottom: 10
+    marginBottom: 20
   },
   camIcon: {
     paddingLeft: 10,
